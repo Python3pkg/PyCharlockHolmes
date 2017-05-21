@@ -50,6 +50,6 @@ for test in TEST_FILES:
     content = open(file_path).read()
     test_result = detect(content)
     if test_result == file_result:
-        print file_path + ": OK"
+        print(file_path + ": OK")
     else:
-        print file_path + ": ERROR"
+        print(file_path + ": ERROR")

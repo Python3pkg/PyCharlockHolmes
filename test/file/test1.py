@@ -22,7 +22,7 @@ from werkzeug.contrib.cache import SimpleCache
 from BeautifulSoup import BeautifulSoup
 import nltk
 
-PUNCT = list(unicode(string.punctuation))
+PUNCT = list(str(string.punctuation))
 
 app = Flask(__name__)
 app.config.from_object('settings')
@@ -38,7 +38,7 @@ class Sample(db.Model):
     enabled = db.Column(db.Boolean())
 
     def __unicode__(self):
-        str = unicode(BeautifulSoup(self.text,convertEntities=BeautifulSoup.HTML_ENTITIES))
+        str = str(BeautifulSoup(self.text,convertEntities=BeautifulSoup.HTML_ENTITIES))
         return nltk.clean_html(str)
 
     @classmethod
@@ -68,16 +68,16 @@ def base_context():
 
 @app.errorhandler(404)
 def page_not_found(error):
-    return render_template('404.html',title=u"To tady nemáme!"), 404
+    return render_template('404.html',title="To tady nemáme!"), 404
 
 @app.route('/faq')
 def faq():
-    return render_template('faq.html',title=u"Často kladené dotazy",samples=Sample.get_all())
+    return render_template('faq.html',title="Často kladené dotazy",samples=Sample.get_all())
 
 @app.route('/permalink/<hash>')
 def permalink(hash):
     one = Output.query.filter_by(hash=hash).first_or_404()
-    return render_template('generator.html', title=u"Henrykuj!", 
+    return render_template('generator.html', title="Henrykuj!", 
                            text=one.text, hash=one.hash,  
                            **simplejson.loads(one.params)
     )
@@ -100,7 +100,7 @@ def index():
     except IntegrityError:
         pass
     
-    return render_template('generator.html', title=u"Henrykuj!",
+    return render_template('generator.html', title="Henrykuj!",
                            text=out, hash=output.hash,
                            words=words, bigrams=bigrams
     )
@@ -112,7 +112,7 @@ def _get_ngram_model(bigrams):
     if cached is None:
         samples = Sample.get_all()
         if samples:
-            text = [unicode(s) for s in samples]
+            text = [str(s) for s in samples]
             tokenizer = nltk.tokenize.WordPunctTokenizer()
             tokenized = tokenizer.tokenize(' '.join(text))
             cached = nltk.NgramModel(3-int(bool(bigrams)), tokenized)
@@ -122,7 +122,7 @@ def _get_ngram_model(bigrams):
 def _generate(words,bigrams):
     model = _get_ngram_model(bigrams)
     starts = model.generate(100)[-4:]
-    starts = filter(lambda a: a not in PUNCT,starts)
+    starts = [a for a in starts if a not in PUNCT]
     generated = model.generate(words, starts)
     out = ' '.join(generated).replace(' , ',', ').replace(' . ','. ')
     return '%s%s&hellip;'%(out[0].upper(),out[1:])
